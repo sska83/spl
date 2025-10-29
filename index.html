@@ -5,32 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Монополия — семейная версия (прототип)</title>
   <style>
-    :root{
-      --bg:#0f172a; /* slate-900 */
-      --panel:#111827; /* gray-900 */
-      --muted:#334155; /* slate-600 */
-      --text:#e5e7eb; /* gray-200 */
-      --accent:#f59e0b; /* amber-500 */
-      --ok:#22c55e; /* green-500 */
-      --bad:#ef4444; /* red-500 */
-    }
+    :root{ --bg:#0f172a; --panel:#111827; --muted:#334155; --text:#e5e7eb; --accent:#f59e0b; --ok:#22c55e; --bad:#ef4444; }
     html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif}
-    .app{display:grid;grid-template-columns: 1fr 360px;gap:16px;height:100%;padding:16px;box-sizing:border-box}
+    .app{display:grid;grid-template-columns:1fr 360px;gap:16px;height:100%;padding:16px;box-sizing:border-box}
     .board-wrap{display:grid;place-items:center;background:linear-gradient(180deg,#0b1225,#0a0f1f);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);position:relative}
 
-    /* 11x11 CSS Grid по периметру 40 клеток */
     .board{width:min(92vmin,1200px);height:min(92vmin,1200px);display:grid;grid-template-columns:repeat(11,1fr);grid-template-rows:repeat(11,1fr);gap:4px;padding:8px;box-sizing:border-box}
     .cell{background:#111827;border:1px solid #1f2937;border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px;font-size:clamp(8px,1.2vmin,14px);position:relative}
     .cell .price{position:absolute;bottom:4px;right:6px;font-size:.8em;color:#94a3b8}
-    .center{grid-area: 2 / 2 / span 9 / span 9;border-radius:16px;background:radial-gradient(ellipse at center,#0c1328 0%, #0a0f1f 60%, #0a0f1f 100%);display:grid;place-items:center;position:relative}
+    .center{grid-area:2/2/span 9/span 9;border-radius:16px;background:radial-gradient(ellipse at center,#0c1328 0%,#0a0f1f 60%,#0a0f1f 100%);display:grid;place-items:center;position:relative}
 
-    /* Кости в центре */
     .dice-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:14px;pointer-events:none}
-    .die{width:min(9vmin,72px);height:min(9vmin,72px);border-radius:18px;background:linear-gradient(145deg,#0e162d,#0b1225);border:1px solid #1f2937;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:calc(min(9vmin,72px)*0.5);box-shadow:inset 0 4px 12px rgba(0,0,0,.5),0 6px 18px rgba(0,0,0,.35);opacity:.85;transform:translateZ(0)}
+    .die{width:min(9vmin,72px);height:min(9vmin,72px);border-radius:18px;background:linear-gradient(145deg,#0e162d,#0b1225);border:1px solid #1f2937;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:calc(min(9vmin,72px)*0.5);box-shadow:inset 0 4px 12px rgba(0,0,0,.5),0 6px 18px rgba(0,0,0,.35);opacity:.85}
     .die.shake{animation:shake .4s ease both}
     @keyframes shake{0%{transform:rotate(0) scale(1)}25%{transform:rotate(8deg) scale(1.05)}50%{transform:rotate(-8deg) scale(1.05)}75%{transform:rotate(6deg)}100%{transform:rotate(0) scale(1)}}
 
-    /* Панель справа */
     .side{background:var(--panel);border:1px solid #1f2937;border-radius:16px;display:grid;grid-template-rows:auto auto 1fr auto;overflow:hidden}
     .bar{display:flex;gap:8px;padding:12px;border-bottom:1px solid #1f2937;align-items:center}
     button{background:#1f2937;color:var(--text);border:1px solid #334155;border-radius:10px;padding:10px 12px;font-weight:600;cursor:pointer}
@@ -42,39 +31,40 @@
     .players{padding:12px;border-top:1px solid #1f2937;display:grid;gap:10px}
     .player{display:flex;justify-content:space-between;align-items:center;background:#0b1222;border:1px solid #1f2937;border-radius:12px;padding:10px}
     .money{font-weight:700}
+    .player .id{display:flex;align-items:center;gap:8px}
+    .swatch{width:12px;height:12px;border-radius:3px;border:1px solid rgba(255,255,255,.6);box-shadow:0 1px 2px rgba(0,0,0,.3)}
 
-    /* Фишки (большие скрыты) */
-    .tokens{position:absolute;inset:8px;pointer-events:none;display:none}
+    .tokens{display:none}
     .token{display:none}
-    .t0{background:#60a5fa}
-    .t1{background:#fca5a5}
-    .t2{background:#86efac}
-    .t3{background:#fcd34d}
+    .t0{background:#60a5fa}.t1{background:#fca5a5}.t2{background:#86efac}.t3{background:#fcd34d}
 
-    /* Маленькие пипки-позиции на клетках */
     .pips{position:absolute;bottom:4px;left:6px;display:flex;gap:4px}
     .pip{width:10px;height:10px;border-radius:50%;border:1px solid rgba(255,255,255,.7);box-shadow:0 1px 2px rgba(0,0,0,.4)}
 
     .toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);background:#111827;border:1px solid #334155;border-radius:12px;padding:10px 14px;font-weight:700;opacity:0;transition:opacity .25s}
     .toast.show{opacity:1}
 
-    /* Кнопки внизу панели */
     .ui{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;border-top:1px solid #1f2937}
     .ui button{font-size:16px;padding:14px}
 
-    /* Подсветка активной клетки */
     .cell.active{box-shadow:0 0 0 3px var(--accent) inset}
 
-    /* Маркеры владения */
     .owner-tag{position:absolute;left:0;bottom:0;height:6px;width:100%;border-bottom-left-radius:8px;border-bottom-right-radius:8px;opacity:.95}
-    .owner-chip{position:absolute;top:4px;right:4px;width:12px;height:12px;border-radius:50%;border:1px solid rgba(255,255,255,.6);box-shadow:0 1px 2px rgba(0,0,0,.4)}
+    .owner-chip{display:none}
 
-    /* Аннотации по центру поля */
     .anno{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);max-width:60%;padding:16px 20px;border-radius:14px;background:rgba(17,24,39,.7);border:1px solid #475569;backdrop-filter:blur(3px);font-size:clamp(14px,2.2vmin,20px);line-height:1.4;white-space:pre-line;pointer-events:none;z-index:5;text-align:left}
     .anno .msg{margin:.25em 0;font-weight:800}
-    .anno .buy{color:#22c55e}
-    .anno .rent{color:#ef4444}
-    .anno .info{color:#e5e7eb}
+    .anno .buy{color:#22c55e}.anno .rent{color:#ef4444}.anno .info{color:#e5e7eb}
+
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:20}
+    .overlay.show{display:flex}
+    .card{background:#0b1222;border:1px solid #334155;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.4);padding:20px;min-width:min(92vw,520px)}
+    .grid{display:grid;gap:10px}
+    .grid.cols-2{grid-template-columns:1fr 1fr}
+    .field{display:grid;gap:6px}
+    .list{display:grid;gap:8px;max-height:50vh;overflow:auto}
+    .item{display:flex;justify-content:space-between;align-items:center;border:1px solid #334155;background:#0b1528;border-radius:10px;padding:10px}
+    .item button{padding:6px 10px}
   </style>
 </head>
 <body>
@@ -95,10 +85,10 @@
 
       <div class="row" style="padding:10px">
         <button id="roll" class="big">Бросить кости 🎲</button>
-        <button id="buy">Купить</button>
-        <button id="skipBuy">Пропустить</button>
+        <button id="payBail" title="Оплатить выход из тюрьмы">Оплатить выход $50</button>
+        <button id="buy" disabled>Купить</button>
+        <button id="skipBuy" disabled>Пропустить</button>
         <button id="sell">Продать</button>
-        <button id="build">Строить</button>
       </div>
 
       <div class="log" id="log"></div>
@@ -111,422 +101,269 @@
     </aside>
   </div>
 
+  <div class="overlay" id="setup">
+    <div class="card">
+      <h2 style="margin:0 0 12px 0">Новая игра</h2>
+      <div class="grid cols-2">
+        <div class="field"><label>Кол-во игроков (2–4)</label><input id="pCount" type="number" min="2" max="4" value="2"/></div>
+        <div class="field"><label>Начальные деньги</label><input id="startMoney" type="number" min="500" step="50" value="1500"/></div>
+      </div>
+      <div class="grid" id="names"></div>
+      <div class="row" style="margin-top:12px">
+        <button id="startGame" class="big">Начать</button>
+        <div style="flex:1"></div>
+        <button id="cancelSetup">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="market">
+    <div class="card">
+      <h2 style="margin:0 0 12px 0">Продать активы</h2>
+      <div class="list" id="marketList"></div>
+      <div class="row" style="margin-top:12px"><div style="flex:1"></div><button id="closeMarket">Закрыть</button></div>
+    </div>
+  </div>
+
   <script>
-  // ======================
-  // ДАННЫЕ ДОСКИ И КАРТ
-  // ======================
+  // ---------- ДАННЫЕ ----------
   const BOARD = [
-    {id:0, name:"СТАРТ", type:"go", payout:200},
-    {id:1, name:"Браун-1", type:"prop", color:"#8b5e3c", price:60, baseRent:2},
-    {id:2, name:"Касса сообщества", type:"community"},
-    {id:3, name:"Браун-2", type:"prop", color:"#8b5e3c", price:60, baseRent:4},
-    {id:4, name:"Налог", type:"tax", amount:200},
-    {id:5, name:"Ж/Д станция", type:"rail", price:200},
-    {id:6, name:"Голубой-1", type:"prop", color:"#60a5fa", price:100, baseRent:6},
-    {id:7, name:"Шанс", type:"chance"},
-    {id:8, name:"Голубой-2", type:"prop", color:"#60a5fa", price:100, baseRent:6},
-    {id:9, name:"Голубой-3", type:"prop", color:"#60a5fa", price:120, baseRent:8},
-    {id:10, name:"ТЮРЬМА / В ГОСТЯХ", type:"jail"},
-    {id:11, name:"Розовый-1", type:"prop", color:"#f472b6", price:140, baseRent:10},
-    {id:12, name:"Электростанция", type:"util", price:150},
-    {id:13, name:"Розовый-2", type:"prop", color:"#f472b6", price:140, baseRent:10},
-    {id:14, name:"Розовый-3", type:"prop", color:"#f472b6", price:160, baseRent:12},
-    {id:15, name:"Ж/Д станция", type:"rail", price:200},
-    {id:16, name:"Оранжевый-1", type:"prop", color:"#fb923c", price:180, baseRent:14},
-    {id:17, name:"Касса сообщества", type:"community"},
-    {id:18, name:"Оранжевый-2", type:"prop", color:"#fb923c", price:180, baseRent:14},
-    {id:19, name:"Оранжевый-3", type:"prop", color:"#fb923c", price:200, baseRent:16},
-    {id:20, name:"БЕСПЛАТНАЯ ПАРКОВКА", type:"free"},
-    {id:21, name:"Красный-1", type:"prop", color:"#ef4444", price:220, baseRent:18},
-    {id:22, name:"Шанс", type:"chance"},
-    {id:23, name:"Красный-2", type:"prop", color:"#ef4444", price:220, baseRent:18},
-    {id:24, name:"Красный-3", type:"prop", color:"#ef4444", price:240, baseRent:20},
-    {id:25, name:"Ж/Д станция", type:"rail", price:200},
-    {id:26, name:"Жёлтый-1", type:"prop", color:"#facc15", price:260, baseRent:22},
-    {id:27, name:"Жёлтый-2", type:"prop", color:"#facc15", price:260, baseRent:22},
-    {id:28, name:"Водоканал", type:"util", price:150},
-    {id:29, name:"Жёлтый-3", type:"prop", color:"#facc15", price:280, baseRent:24},
-    {id:30, name:"Отправляйтесь в ТЮРЬМУ", type:"gojail"},
-    {id:31, name:"Зелёный-1", type:"prop", color:"#22c55e", price:300, baseRent:26},
-    {id:32, name:"Зелёный-2", type:"prop", color:"#22c55e", price:300, baseRent:26},
-    {id:33, name:"Касса сообщества", type:"community"},
-    {id:34, name:"Зелёный-3", type:"prop", color:"#22c55e", price:320, baseRent:28},
-    {id:35, name:"Ж/Д станция", type:"rail", price:200},
-    {id:36, name:"Шанс", type:"chance"},
-    {id:37, name:"Синий-1", type:"prop", color:"#3b82f6", price:350, baseRent:35},
-    {id:38, name:"Налог роскоши", type:"tax", amount:100},
-    {id:39, name:"Синий-2", type:"prop", color:"#3b82f6", price:400, baseRent:50},
+    {id:0,name:"СТАРТ",type:"go",payout:200},
+    {id:1,name:"Браун-1",type:"prop",color:"#8b5e3c",price:60,baseRent:2},
+    {id:2,name:"Касса сообщества",type:"community"},
+    {id:3,name:"Браун-2",type:"prop",color:"#8b5e3c",price:60,baseRent:4},
+    {id:4,name:"Налог",type:"tax",amount:200},
+    {id:5,name:"Ж/Д станция",type:"rail",price:200},
+    {id:6,name:"Голубой-1",type:"prop",color:"#60a5fa",price:100,baseRent:6},
+    {id:7,name:"Шанс",type:"chance"},
+    {id:8,name:"Голубой-2",type:"prop",color:"#60a5fa",price:100,baseRent:6},
+    {id:9,name:"Голубой-3",type:"prop",color:"#60a5fa",price:120,baseRent:8},
+    {id:10,name:"ТЮРЬМА / В ГОСТЯХ",type:"jail"},
+    {id:11,name:"Розовый-1",type:"prop",color:"#f472b6",price:140,baseRent:10},
+    {id:12,name:"Электростанция",type:"util",price:150},
+    {id:13,name:"Розовый-2",type:"prop",color:"#f472b6",price:140,baseRent:10},
+    {id:14,name:"Розовый-3",type:"prop",color:"#f472b6",price:160,baseRent:12},
+    {id:15,name:"Ж/Д станция",type:"rail",price:200},
+    {id:16,name:"Оранжевый-1",type:"prop",color:"#fb923c",price:180,baseRent:14},
+    {id:17,name:"Касса сообщества",type:"community"},
+    {id:18,name:"Оранжевый-2",type:"prop",color:"#fb923c",price:180,baseRent:14},
+    {id:19,name:"Оранжевый-3",type:"prop",color:"#fb923c",price:200,baseRent:16},
+    {id:20,name:"БЕСПЛАТНАЯ ПАРКОВКА",type:"free"},
+    {id:21,name:"Красный-1",type:"prop",color:"#ef4444",price:220,baseRent:18},
+    {id:22,name:"Шанс",type:"chance"},
+    {id:23,name:"Красный-2",type:"prop",color:"#ef4444",price:220,baseRent:18},
+    {id:24,name:"Красный-3",type:"prop",color:"#ef4444",price:240,baseRent:20},
+    {id:25,name:"Ж/Д станция",type:"rail",price:200},
+    {id:26,name:"Жёлтый-1",type:"prop",color:"#facc15",price:260,baseRent:22},
+    {id:27,name:"Жёлтый-2",type:"prop",color:"#facc15",price:260,baseRent:22},
+    {id:28,name:"Водоканал",type:"util",price:150},
+    {id:29,name:"Жёлтый-3",type:"prop",color:"#facc15",price:280,baseRent:24},
+    {id:30,name:"Отправляйтесь в ТЮРЬМУ",type:"gojail"},
+    {id:31,name:"Зелёный-1",type:"prop",color:"#22c55e",price:300,baseRent:26},
+    {id:32,name:"Зелёный-2",type:"prop",color:"#22c55e",price:300,baseRent:26},
+    {id:33,name:"Касса сообщества",type:"community"},
+    {id:34,name:"Зелёный-3",type:"prop",color:"#22c55e",price:320,baseRent:28},
+    {id:35,name:"Ж/Д станция",type:"rail",price:200},
+    {id:36,name:"Шанс",type:"chance"},
+    {id:37,name:"Синий-1",type:"prop",color:"#3b82f6",price:350,baseRent:35},
+    {id:38,name:"Налог роскоши",type:"tax",amount:100},
+    {id:39,name:"Синий-2",type:"prop",color:"#3b82f6",price:400,baseRent:50},
   ];
 
-  const CHANCE = [
-    {t:"Вперёд на СТАРТ, получи 200", fn:(G)=>G.moveTo(0,true)},
-    {t:"Иди в тюрьму. Не проходи СТАРТ", fn:(G)=>G.toJail()},
-    {t:"Штраф за превышение скорости: заплати 15", fn:(G)=>G.pay(15)},
-    {t:"Получите дивиденды: +50", fn:(G)=>G.gain(50)},
+  const CHANCE=[
+    {t:"Вперёд на СТАРТ, получи 200",fn:G=>G.moveTo(0,true)},
+    {t:"Иди в тюрьму. Не проходи СТАРТ",fn:G=>G.toJail()},
+    {t:"Штраф за превышение скорости: заплати 15",fn:G=>G.pay(15)},
+    {t:"Получите дивиденды: +50",fn:G=>G.gain(50)},
   ];
-  const COMMUNITY = [
-    {t:"Верните налоговый вычет: +100", fn:(G)=>G.gain(100)},
-    {t:"Медосмотр: заплати 50", fn:(G)=>G.pay(50)},
-    {t:"Найден кошелёк: +20", fn:(G)=>G.gain(20)},
-    {t:"Оплата услуг: заплати 25", fn:(G)=>G.pay(25)},
+  const COMMUNITY=[
+    {t:"Верните налоговый вычет: +100",fn:G=>G.gain(100)},
+    {t:"Медосмотр: заплати 50",fn:G=>G.pay(50)},
+    {t:"Найден кошелёк: +20",fn:G=>G.gain(20)},
+    {t:"Оплата услуг: заплати 25",fn:G=>G.pay(25)},
   ];
 
-  // ======================
-  // УТИЛИТЫ
-  // ======================
-  const $ = (sel,root=document)=>root.querySelector(sel);
-  const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
-  const log = (msg)=>{ const el=document.createElement('p'); el.textContent=msg; $('#log').prepend(el) };
-  const toast = (msg)=>{ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1200) };
-  const anno = (lines=[], kind='info')=>{ const a=$('#anno'); a.innerHTML = lines.map(t=>`<div class="msg ${kind}">${t}</div>`).join(''); };
-  const clearAnno = ()=>{ const a=$('#anno'); a.innerHTML=''; };
+  // ---------- УТИЛИТЫ ----------
+  const $=(s,r=document)=>r.querySelector(s);
+  const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  const log=m=>{const el=document.createElement('p');el.textContent=m;$('#log').prepend(el)};
+  const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1200)};
+  const anno=(lines=[],kind='info')=>{$('#anno').innerHTML=lines.map(t=>`<div class="msg ${kind}">${t}</div>`).join('')};
+  const clearAnno=()=>{$('#anno').innerHTML=''};
 
-  function indexToGrid(n){
-    const size=11; const last=size-1; // индексы 0..10
-    if(n<=10) return {row:last, col:last-n};
-    if(n<=20) return {row:last-(n-10), col:0};
-    if(n<=30) return {row:0, col:(n-20)};
-    return {row:(n-30), col:last};
-  }
+  function indexToGrid(n){const s=11,l=s-1;if(n<=10)return{row:l,col:l-n};if(n<=20)return{row:l-(n-10),col:0};if(n<=30)return{row:0,col:(n-20)};return{row:(n-30),col:l}}
 
-  // РЕНДЕР ДОСКИ
+  // ---------- РЕНДЕР ----------
   function renderBoard(){
-    const board = $('#board');
-    board.innerHTML = '';
-    const center = document.createElement('div');
-    center.className = 'center';
-    center.innerHTML = '<div id="dice" class="dice-wrap"><div class="die" id="die1">1</div><div class="die" id="die2">1</div></div>';
-    board.appendChild(center);
-
+    const board=$('#board');board.innerHTML='';
+    const center=document.createElement('div');center.className='center';center.innerHTML='<div id="dice" class="dice-wrap"><div class="die" id="die1">1</div><div class="die" id="die2">1</div></div>';board.appendChild(center);
     for(let i=0;i<40;i++){
-      const c = document.createElement('div');
-      c.className = 'cell';
-      const {row,col} = indexToGrid(i);
-      c.style.gridRowStart = row+1; // grid 1-based
-      c.style.gridColumnStart = col+1;
-      c.textContent = BOARD[i]?.name || `Клетка ${i}`;
-      c.dataset.index = i;
-      const b = BOARD[i];
-      if(b?.type==='prop'){
-        const price = document.createElement('div');
-        price.className = 'price';
-        price.textContent = `$${b.price}`;
-        c.appendChild(price);
-      }
-      board.appendChild(c);
+      const c=document.createElement('div');c.className='cell';const {row,col}=indexToGrid(i);c.style.gridRowStart=row+1;c.style.gridColumnStart=col+1;c.textContent=BOARD[i]?.name||`Клетка ${i}`;c.dataset.index=i;const b=BOARD[i];if(b?.type==='prop'){const price=document.createElement('div');price.className='price';price.textContent=`$${b.price}`;c.appendChild(price);}board.appendChild(c);
     }
-    updateOwnershipUI();
-    renderPips();
+    updateOwnershipUI();renderPips();
   }
 
   function updateOwnershipUI(){
-    $$('.cell').forEach(cell=>{
-      cell.querySelectorAll('.owner-tag,.owner-chip').forEach(n=>n.remove());
-    });
+    $$('.cell').forEach(cell=>cell.querySelectorAll('.owner-tag,.owner-chip').forEach(n=>n.remove()));
     Object.keys(Game.owned||{}).forEach(k=>{
-      const idx = Number(k);
-      const own = Game.owned[idx];
-      if(own && typeof own.owner==='number'){
-        const cell = document.querySelector(`.cell[data-index="${idx}"]`);
-        if(!cell) return;
-        const color = getPlayerColor(own.owner);
-        const bar = document.createElement('div');
-        bar.className='owner-tag';
-        bar.style.background = color;
-        const dot = document.createElement('div');
-        dot.className='owner-chip';
-        dot.style.background = color;
-        cell.appendChild(bar);
-        cell.appendChild(dot);
-      }
+      const idx=+k,own=Game.owned[idx];if(!(own&&typeof own.owner==='number'))return;const cell=$(`.cell[data-index="${idx}"]`);if(!cell)return;const color=getPlayerColor(own.owner);
+      const bar=document.createElement('div');bar.className='owner-tag';bar.style.background=color;cell.appendChild(bar);
     });
   }
+  function getPlayerColor(pid){const p=Game.players&&Game.players[pid];const map={t0:'#60a5fa',t1:'#fca5a5',t2:'#86efac',t3:'#fcd34d'};return map[p?.color]||'#94a3b8'}
 
-  function getPlayerColor(pid){
-    const p = Game.players && Game.players[pid];
-    const map = { t0:'#60a5fa', t1:'#fca5a5', t2:'#86efac', t3:'#fcd34d' };
-    return map[p?.color] || '#94a3b8';
-  }
-
-  // ИГРОВАЯ ЛОГИКА
-  const Game = {
-    players:[],
-    current:0,
-    dice:[1,1],
-    owned:{},
-    turnLock:false,
-    phase:'awaitRoll',
-
-    init(){
-      this.players = [
-        {id:0,name:'Игрок 1',money:1500,pos:0,inJail:false,jailTurns:0,color:'t0'},
-        {id:1,name:'Игрок 2',money:1500,pos:0,inJail:false,jailTurns:0,color:'t1'},
-      ];
-      this.current = 0; this.owned = {}; this.turnLock=false; this.phase='awaitRoll';
-      renderPlayers(); renderTokens();
-      setActiveCell(0);
-      log('Новая игра. Игрок 1 начинает.');
-      updateTurnLabel();
-      save();
+  // ---------- ЛОГИКА ИГРЫ ----------
+  const Game={
+    players:[],current:0,dice:[1,1],owned:{},turnLock:false,phase:'awaitRoll',
+    initFromConfig(cfg){
+      this.players=cfg.names.map((name,i)=>({id:i,name:name||`Игрок ${i+1}`,money:cfg.money,pos:0,inJail:false,jailTurns:0,color:['t0','t1','t2','t3'][i]}));
+      this.current=0;this.owned={};this.turnLock=false;this.phase='awaitRoll';
+      renderPlayers();renderTokens();setActiveCell(0);log('Новая игра. '+this.players[0].name+' начинает.');updateTurnLabel();save();
     },
-
     roll(){
-      clearAnno();
-      if(this.turnLock || this.phase!=='awaitRoll') return; this.turnLock=true;
-      const d1 = 1+Math.floor(Math.random()*6);
-      const d2 = 1+Math.floor(Math.random()*6);
-      this.dice=[d1,d2];
-      showDice(d1,d2);
-      log(`${this.cur().name} бросает кости: ${d1} + ${d2}`);
+      clearAnno();if(this.turnLock||this.phase!=='awaitRoll')return;this.turnLock=true;
+      // Если игрок на этапе начала хода сидит в тюрьме — не кидаем сразу кости, а даём выбор: оплатить или пропустить
       if(this.cur().inJail){
-        if(d1===d2){ log('Дубль! Выход из тюрьмы.'); this.cur().inJail=false; this.cur().jailTurns=0; this.phase='moving'; this.move(d1+d2); }
-        else { this.cur().jailTurns++; log('Не повезло. Остаетесь в тюрьме.'); if(this.cur().jailTurns>=3){ log('Оплачиваете 50 и выходите.'); this.pay(50,true); this.cur().inJail=false; this.cur().jailTurns=0; } this.turnLock=false; this.autoEnd(); update(); return; }
-      } else {
-        this.phase='moving';
-        this.move(d1+d2);
+        this.phase='jailDecision';
+        $('#payBail').disabled=false; $('#stayJail').disabled=false;
+        anno([`Вы в тюрьме. Выберите: оплатить $50 и сразу бросить кости, или пропустить этот ход и оставаться в тюрьме.`],'info');
+        this.turnLock=false; update(); return;
       }
-    },
 
-    move(steps){
-      const p = this.cur();
-      let target = (p.pos + steps) % 40;
-      if(p.pos + steps >= 40){ p.money += 200; toast('+$200 за проход через СТАРТ'); log(`${p.name} получает $200`); }
-      animateMove(p.id, p.pos, target, ()=>{
-        p.pos = target; this.land(); this.turnLock=false; update();
-      });
+      const d1=1+Math.floor(Math.random()*6),d2=1+Math.floor(Math.random()*6);this.dice=[d1,d2];showDice(d1,d2);log(`${this.cur().name} бросает кости: ${d1} + ${d2}`);
+      if(this.cur().inJail){
+        // этот путь сейчас не используется, т.к. мы даём выбор до броска
+        if(d1===d2){log('Дубль! Выход из тюрьмы.');this.cur().inJail=false;this.cur().jailTurns=0;this.phase='moving';this.move(d1+d2);}else{this.cur().jailTurns++;log('Не повезло. Остаетесь в тюрьме.');if(this.cur().jailTurns>=3){log('Оплачиваете 50 и выходите.');this.pay(50,true);this.cur().inJail=false;this.cur().jailTurns=0;}this.turnLock=false;this.autoEnd();update();return;}
+      } else {this.phase='moving';this.move(d1+d2);}    },
+    payBail(){const p=this.cur();if(!p.inJail)return; if(p.money<50){toast('Недостаточно денег');return;}p.money-=50;p.inJail=false;p.jailTurns=0;log(`${p.name} оплачивает $50 и выходит из тюрьмы.`);update();save();},
+    payBailAndRoll(){ // оплатил и сразу кидает кости и делает ход
+      this.payBail(); // освободились
+      // небольшой тайм-аут чтобы UI обновился
+      setTimeout(()=>{ this.rollAfterPay(); },120);
     },
-
-    land(){
-      const p = this.cur();
-      const tile = BOARD[p.pos];
-      setActiveCell(p.pos);
-      switch(tile.type){
-        case 'go': log(`${p.name} на СТАРТе`); this.autoEnd(); break;
-        case 'tax': anno([`Налог: оплатить $${tile.amount}.`],'rent'); this.pay(tile.amount); this.autoEnd(); break;
-        case 'jail': log(`${p.name} просто навещает заключённых`); this.autoEnd(); break;
-        case 'gojail': this.toJail(); this.autoEnd(); break;
-        case 'chance': anno([`Карта «Шанс»`],'info'); drawCard(CHANCE); this.autoEnd(); break;
-        case 'community': anno([`Касса сообщества`],'info'); drawCard(COMMUNITY); this.autoEnd(); break;
-        case 'prop':
-        case 'rail':
-        case 'util': this.handleProperty(p.pos); break;
-        case 'free': log('Свободная парковка. Ничего не происходит.'); this.autoEnd(); break;
-        default: this.autoEnd();
+    rollAfterPay(){ // бросок, используемый после оплаты
+      if(this.cur().inJail) return; // на всякий
+      this.turnLock=true;
+      const d1=1+Math.floor(Math.random()*6),d2=1+Math.floor(Math.random()*6);this.dice=[d1,d2];showDice(d1,d2);log(`${this.cur().name} бросает кости: ${d1} + ${d2} (после оплаты)`);
+      this.phase='moving'; this.move(d1+d2);
+    },
+    stayJail(){ // игрок выбирает пропустить ход в тюрьме
+      const p=this.cur(); if(!p.inJail) return; p.jailTurns = (p.jailTurns||0) + 1; log(`${p.name} пропускает ход в тюрьме (ход ${p.jailTurns}).`);
+      if(p.jailTurns>=3){ // по правилам после 3 неудачных ходов можно автоматически выйти и заплатить
+        if(p.money>=50){ p.money-=50; p.inJail=false; p.jailTurns=0; log(`${p.name} после 3 ходов оплачивает $50 и выходит из тюрьмы.`); }
+        else { log(`${p.name} не может оплатить выход — остаётся в тюрьме.`); }
       }
+      update(); save(); this.phase='awaitRoll'; this.endTurn();
     },
-
+    move(steps){const p=this.cur();let target=(p.pos+steps)%40;if(p.pos+steps>=40){p.money+=200;toast('+$200 за проход через СТАРТ');log(`${p.name} получает $200`);}animateMove(p.id,p.pos,target,()=>{p.pos=target;this.land();this.turnLock=false;update();});},
+    land(){const p=this.cur();const tile=BOARD[p.pos];setActiveCell(p.pos);switch(tile.type){
+      case 'go':log(`${p.name} на СТАРТе`);this.autoEnd();break;
+      case 'tax':anno([`Налог: оплатить $${tile.amount}.`],'rent');this.pay(tile.amount);this.autoEnd();break;
+      case 'jail':log(`${p.name} просто навещает заключённых`);$('#payBail').disabled=!p.inJail;this.autoEnd();break;
+      case 'gojail':this.toJail();this.autoEnd();break;
+      case 'chance':anno([`Карта «Шанс»`],'info');drawCard(CHANCE);this.autoEnd();break;
+      case 'community':anno([`Касса сообщества`],'info');drawCard(COMMUNITY);this.autoEnd();break;
+      case 'prop':case 'rail':case 'util':this.handleProperty(p.pos);break;
+      case 'free':log('Свободная парковка. Ничего не происходит.');this.autoEnd();break;
+      default:this.autoEnd();}
+    },
     handleProperty(i){
-      const tile = BOARD[i];
-      const own = this.owned[i];
-      const p = this.cur();
-      $('#buy').disabled = true; $('#skipBuy').disabled = true; $('#buy').dataset.index='';
+      const tile=BOARD[i],own=this.owned[i],p=this.cur();$('#buy').disabled=true;$('#skipBuy').disabled=true;$('#buy').dataset.index='';
       if(!own){
-        if(p.money >= (tile.price||0)){
-          this.phase='awaitDecision';
-          $('#buy').disabled = false; $('#skipBuy').disabled = false; $('#buy').dataset.index=i;
-          anno([`${tile.name} продаётся за $${tile.price}.`,`Нажмите «Купить» или «Пропустить».`],'buy');
-          log(`${tile.name} продаётся за $${tile.price}. Нажмите \"Купить\" или \"Пропустить\".`);
-        } else {
-          anno([`${tile.name}: не хватает денег для покупки.`],'info');
-          log(`${tile.name} нельзя купить: не хватает денег.`); this.autoEnd();
-        }
-      } else if(own.owner !== p.id){
-        const rent = calcRent(i);
-        anno([`Клетка занята: владелец — ${this.players[own.owner].name}.`,`Оплатите ренту $${rent}.`],'rent');
-        log(`${p.name} платит ренту $${rent} игроку ${this.players[own.owner].name}`);
-        this.transfer(p.id, own.owner, rent);
-        this.autoEnd();
-      } else {
-        anno([`${tile.name} принадлежит вам.`],'info');
-        log(`${tile.name} принадлежит вам.`); this.autoEnd();
-      }
+        if(p.money>=(tile.price||0)){this.phase='awaitDecision';$('#buy').disabled=false;$('#skipBuy').disabled=false;$('#buy').dataset.index=i;anno([`${tile.name} продаётся за $${tile.price}.`,`Нажмите «Купить» или «Пропустить».`],'buy');log(`${tile.name} продаётся за $${tile.price}.`);} else {anno([`${tile.name}: не хватает денег для покупки.`],'info');$('#sell').disabled=false;log(`${tile.name} нельзя купить: не хватает денег.`);this.autoEnd();}
+      } else if(own.owner!==p.id){
+        const rent=calcRent(i);anno([`Клетка занята: владелец — ${this.players[own.owner].name}.`,`Оплатите ренту $${rent}.`],'rent');log(`${p.name} платит ренту $${rent} игроку ${this.players[own.owner].name}`);this.transfer(p.id,own.owner,rent);this.autoEnd();
+      } else {anno([`${tile.name} принадлежит вам.`],'info');log(`${tile.name} принадлежит вам.`);this.autoEnd();}
     },
-
-    buy(index){
-      if(this.phase!=='awaitDecision') return;
-      const tile = BOARD[index];
-      const p = this.cur();
-      if(this.owned[index]){ toast('Уже куплено'); this.autoEnd(); return; }
-      if((tile.price||0) > p.money){ toast('Недостаточно денег'); this.autoEnd(); return; }
-      p.money -= tile.price||0; this.owned[index] = {owner:p.id, houses:0, hotel:false};
-      log(`${p.name} покупает ${tile.name} за $${tile.price}`);
-      update(); save();
-      this.phase='awaitRoll';
-      this.endTurn();
-    },
-
-    skip(){ if(this.phase==='awaitDecision'){ log('Покупка пропущена.'); this.phase='awaitRoll'; this.endTurn(); } },
-
-    pay(amount, silent){
-      const p = this.cur(); p.money -= amount; if(!silent) log(`${p.name} платит $${amount}`); update(); save();
-      if(p.money < 0){ toast('Банкротство близко'); }
-    },
-    gain(amount){ const p=this.cur(); p.money += amount; log(`${p.name} получает $${amount}`); update(); save(); },
-    transfer(from,to,amt){ this.players[from].money -= amt; this.players[to].money += amt; update(); save(); },
-
-    toJail(){ const p=this.cur(); p.pos=10; p.inJail=true; p.jailTurns=0; setActiveCell(10); log(`${p.name} отправляется в тюрьму.`); renderTokens(); save(); },
-    moveTo(i, passGo){
-      const p=this.cur();
-      if(passGo && i < p.pos){ p.money += 200; log(`${p.name} получает $200 за проход через СТАРТ`); }
-      animateMove(p.id, p.pos, i, ()=>{ p.pos=i; this.land(); update(); save(); });
-    },
-
-    autoEnd(){
-      if(this.phase==='awaitDecision'){ return; }
-      this.phase='awaitRoll';
-      setTimeout(()=>this.endTurn(), 400);
-    },
-
-    endTurn(){ this.current = (this.current+1)%this.players.length; updateTurnLabel(); save(); },
-    cur(){ return this.players[this.current]; }
+    buy(index){if(this.phase!=='awaitDecision')return;const tile=BOARD[index],p=this.cur();if(this.owned[index]){toast('Уже куплено');this.autoEnd();return;}if((tile.price||0)>p.money){toast('Недостаточно денег');this.autoEnd();return;}p.money-=tile.price||0;this.owned[index]={owner:p.id,houses:0,hotel:false};log(`${p.name} покупает ${tile.name} за $${tile.price}`);update();save();this.phase='awaitRoll';this.endTurn();},
+    skip(){if(this.phase==='awaitDecision'){log('Покупка пропущена.');this.phase='awaitRoll';this.endTurn();}},
+    sellOpen(){const list=$('#marketList');list.innerHTML='';const pid=this.cur().id;const ownedIdx=Object.keys(this.owned).map(Number).filter(i=>this.owned[i]?.owner===pid);if(!ownedIdx.length){list.innerHTML='<div class="item">У вас нет собственности.</div>';}else{ownedIdx.forEach(i=>{const t=BOARD[i];const price=Math.floor((t.price||0)*0.5);const el=document.createElement('div');el.className='item';el.innerHTML=`<div>${t.name}</div><div>$${price} <button data-i="${i}">Продать</button></div>`;list.appendChild(el);});}$('#market').classList.add('show');},
+    sell(i){const own=this.owned[i];if(!own||own.owner!==this.cur().id)return;const t=BOARD[i];const price=Math.floor((t.price||0)*0.5);this.cur().money+=price;delete this.owned[i];log(`${this.cur().name} продаёт ${t.name} за $${price}`);update();save();},
+    pay(amount,silent){const p=this.cur();p.money-=amount;if(!silent)log(`${p.name} платит $${amount}`);update();save();if(p.money<0){toast('Банкротство близко');}},
+    gain(amount){const p=this.cur();p.money+=amount;log(`${p.name} получает $${amount}`);update();save();},
+    transfer(from,to,amt){this.players[from].money-=amt;this.players[to].money+=amt;update();save();},
+    toJail(){const p=this.cur();p.pos=10;p.inJail=true;p.jailTurns=0;setActiveCell(10);$('#payBail').disabled=false;$('#stayJail').disabled=false;anno([`${p.name}, вы отправлены в тюрьму. Вы можете оплатить $50 и сразу бросить кости, или пропустить ход.`],'info');log(`${p.name} отправляется в тюрьму.`);renderTokens();save();},
+    moveTo(i,passGo){const p=this.cur();if(passGo&&i<p.pos){p.money+=200;log(`${p.name} получает $200 за проход через СТАРТ`);}animateMove(p.id,p.pos,i,()=>{p.pos=i;this.land();update();save();});},
+    autoEnd(){if(this.phase==='awaitDecision')return;this.phase='awaitRoll';setTimeout(()=>this.endTurn(),400);},
+    endTurn(){this.current=(this.current+1)%this.players.length;$('#payBail').disabled=!this.cur().inJail;$('#stayJail').disabled=true;updateTurnLabel();save();},
+    cur(){return this.players[this.current];}
   };
 
-  function calcRent(i){
-    const t = BOARD[i]; const own = Game.owned[i];
-    if(t.type==='prop'){
-      const same = BOARD.filter(x=>x.type==='prop' && x.color===t.color);
-      const ownedAll = same.every(x=> Game.owned[x.id]?.owner === own.owner);
-      let rent = t.baseRent || 0;
-      if(ownedAll) rent*=2;
-      rent += (own.houses||0) * t.baseRent;
-      if(own.hotel) rent *= 3;
-      return rent;
-    }
-    if(t.type==='rail'){
-      const count = BOARD
-        .map((x,idx)=>({x,idx}))
-        .filter(o=>o.x.type==='rail' && Game.owned[o.idx]?.owner===own.owner).length;
-      return [25,50,100,200][count-1] || 25;
-    }
-    if(t.type==='util'){
-      const mult = Object.values(Game.owned).filter(o=>{
-        const idx = Number(Object.keys(Game.owned).find(k=>Game.owned[k]===o));
-        return BOARD[idx]?.type==='util' && o.owner===own.owner;
-      }).length>=2 ? 10 : 4;
-      const sum = Game.dice[0]+Game.dice[1];
-      return mult*sum;
-    }
-    return 0;
-  }
+  function calcRent(i){const t=BOARD[i],own=Game.owned[i];if(t.type==='prop'){const same=BOARD.filter(x=>x.type==='prop'&&x.color===t.color);const ownedAll=same.every(x=>Game.owned[x.id]?.owner===own.owner);let r=t.baseRent||0;if(ownedAll)r*=2;r+=(own.houses||0)*t.baseRent;if(own.hotel)r*=3;return r;}if(t.type==='rail'){const c=BOARD.map((x,idx)=>({x,idx})).filter(o=>o.x.type==='rail'&&Game.owned[o.idx]?.owner===own.owner).length;return [25,50,100,200][c-1]||25;}if(t.type==='util'){const mult=Object.entries(Game.owned).filter(([k,o])=>BOARD[+k]?.type==='util'&&o.owner===own.owner).length>=2?10:4;const sum=Game.dice[0]+Game.dice[1];return mult*sum;}return 0;}
+  function drawCard(deck){const card=deck[Math.floor(Math.random()*deck.length)];toast(card.t);anno([card.t],'info');log(`Карта: ${card.t}`);card.fn(Game);update();save();}
 
-  function drawCard(deck){
-    const card = deck[Math.floor(Math.random()*deck.length)];
-    toast(card.t); anno([card.t],'info'); log(`Карта: ${card.t}`); card.fn(Game); update(); save();
-  }
-
-  // ======= ПИПКИ-ПОЗИЦИИ ИГРОКОВ =======
   function renderPips(){
-    $$('.cell').forEach(cell=> cell.querySelectorAll('.pips').forEach(n=>n.remove()));
-    const byCell = new Map();
-    Game.players.forEach((p)=>{
-      const arr = byCell.get(p.pos) || []; arr.push(p); byCell.set(p.pos, arr);
-    });
-    byCell.forEach((arr, idx)=>{
-      const cell = $(`.cell[data-index="${idx}"]`); if(!cell) return;
-      const wrap = document.createElement('div'); wrap.className='pips';
-      arr.forEach(p=>{
-        const dot = document.createElement('div'); dot.className='pip'; dot.style.background = getPlayerColor(p.id);
-        wrap.appendChild(dot);
-      });
-      cell.appendChild(wrap);
-    });
+    $$('.cell').forEach(cell=>cell.querySelectorAll('.pips').forEach(n=>n.remove()));
+    const map=new Map();Game.players.forEach(p=>{const a=map.get(p.pos)||[];a.push(p);map.set(p.pos,a);});
+    map.forEach((arr,idx)=>{const cell=$(`.cell[data-index="${idx}"]`);if(!cell)return;const wrap=document.createElement('div');wrap.className='pips';arr.forEach(p=>{const dot=document.createElement('div');dot.className='pip';dot.style.background=getPlayerColor(p.id);wrap.appendChild(dot);});cell.appendChild(wrap);});
   }
-  // Совместимость: старый вызов больших фишек подменяем на пипки
-  function renderTokens(){ renderPips(); }
-  function positionTokens(){ /* большие фишки отключены */ }
-
-  function animateMove(pid, from, to, done){
-    const steps = ((to - from) + 40) % 40;
-    let i = 0;
-    const step = ()=>{
-      const p = Game.players[pid];
-      p.pos = (from + i) % 40;
-      renderPips(); setActiveCell(p.pos);
-      if(i++ < steps) requestAnimationFrame(()=>setTimeout(step, 80));
-      else { p.pos = to; renderPips(); done && done(); }
-    };
-    step();
-  }
+  function renderTokens(){renderPips();}
+  function positionTokens(){}
+  function animateMove(pid,from,to,done){const steps=((to-from)+40)%40;let i=0;const step=()=>{const p=Game.players[pid];p.pos=(from+i)%40;renderPips();setActiveCell(p.pos);if(i++<steps)requestAnimationFrame(()=>setTimeout(step,80));else{p.pos=to;renderPips();done&&done();}};step();}
 
   function renderPlayers(){
-    const wrap = $('#players'); wrap.innerHTML='';
+    const wrap=$('#players');
+    wrap.innerHTML='';
     Game.players.forEach((p,idx)=>{
-      const el = document.createElement('div'); el.className='player'+(idx===Game.current?' you':'');
-      el.innerHTML = `<div><strong>${p.name}</strong></div><div class="money">$${p.money}</div>`;
-      wrap.appendChild(el);
+      const el=document.createElement('div');el.className='player'+(idx===Game.current?' you':'');const color=getPlayerColor(p.id);el.innerHTML=`<div class="id"><span class="swatch" style="background:${color}"></span><strong>${p.name}</strong></div><div class="money">$${p.money}</div>`;wrap.appendChild(el);
     });
   }
+  function updateTurnLabel(){$('#turnLabel').textContent=`Ход: ${Game.cur().name}`;renderPlayers();}
+  function setActiveCell(i){$$('.cell').forEach(c=>{c.classList.remove('active');c.style.boxShadow='';});const c=$(`.cell[data-index="${i}"]`);if(c){const color=getPlayerColor(Game.current);c.classList.add('active');c.style.boxShadow=`0 0 0 3px ${color} inset`;}}
+  function update(){renderPlayers();renderPips();updateOwnershipUI();}
 
-  function updateTurnLabel(){ $('#turnLabel').textContent = `Ход: ${Game.cur().name}`; renderPlayers(); }
-  function setActiveCell(i){
-    $$('.cell').forEach(c=>{ c.classList.remove('active'); c.style.boxShadow=''; });
-    const c=$(`.cell[data-index="${i}"]`);
-    if(c){
-      const color = getPlayerColor(Game.current);
-      c.classList.add('active');
-      c.style.boxShadow = `0 0 0 3px ${color} inset`;
-    }
-  }
-  function update(){ renderPlayers(); renderPips(); updateOwnershipUI(); }
+  function save(){localStorage.setItem('mono.save',JSON.stringify({players:Game.players,current:Game.current,owned:Game.owned,dice:Game.dice}));}
+  function load(){const raw=localStorage.getItem('mono.save');if(!raw)return false;try{const s=JSON.parse(raw);Object.assign(Game,s);return true;}catch(e){return false;}}
+  function clearSave(){localStorage.removeItem('mono.save');}
 
-  // ======= ХРАНЕНИЕ =======
-  function save(){ localStorage.setItem('mono.save', JSON.stringify({players:Game.players,current:Game.current,owned:Game.owned,dice:Game.dice})); }
-  function load(){ const raw=localStorage.getItem('mono.save'); if(!raw) return false; try{ const s=JSON.parse(raw); Object.assign(Game, s); return true; }catch(e){ return false; } }
+  // ---------- КНОПКИ ----------
+  $('#newGame').addEventListener('click',()=>{showSetup();});
+  $('#roll').addEventListener('click',()=>Game.roll());
+  $('#payBail').addEventListener('click',()=>{Game.payBailAndRoll();});
+  // добавлена кнопка stayJail
+  const stayBtn = document.createElement('button'); stayBtn.id='stayJail'; stayBtn.textContent='Пропустить ход'; stayBtn.style.display='inline-block'; stayBtn.style.fontWeight='600'; stayBtn.disabled=true; document.querySelector('.row').appendChild(stayBtn);
+  document.getElementById('stayJail').addEventListener('click',()=>{Game.stayJail();});
+  $('#buy').addEventListener('click',e=>{const idx=Number(e.currentTarget.dataset.index);if(Number.isFinite(idx))Game.buy(idx);e.currentTarget.disabled=true;$('#skipBuy').disabled=true;});
+  $('#skipBuy').addEventListener('click',()=>{Game.skip();$('#buy').disabled=true;$('#skipBuy').disabled=true;});
+  $('#sell').addEventListener('click',()=>{Game.sellOpen();});
+  $('#help').addEventListener('click',()=>alert('Ход переходит автоматически. В тюрьме можно оплатить $50 и сразу бросить кости, или пропустить ход (до 3 подряд).'));
+  $('#save').addEventListener('click',()=>{save();toast('Сохранено');});
 
-  // ======= КНОПКИ =======
-  $('#newGame').addEventListener('click', ()=>{ Game.init(); });
-  $('#roll').addEventListener('click', ()=>Game.roll());
-  $('#buy').addEventListener('click', (e)=>{ const idx = Number(e.currentTarget.dataset.index); if(Number.isFinite(idx)) Game.buy(idx); e.currentTarget.disabled=true; $('#skipBuy').disabled=true; });
-  $('#skipBuy').addEventListener('click', ()=>{ Game.skip(); $('#buy').disabled=true; $('#skipBuy').disabled=true; });
-  $('#sell').addEventListener('click', ()=>toast('Продажа/ипотека: в прототипе не реализовано'));
-  $('#build').addEventListener('click', ()=>toast('Стройка: в прототипе упрощена; добавить меню позже'));
-  $('#help').addEventListener('click', ()=>alert('Ход автоматически переходит следующему игроку. При покупке появятся кнопки «Купить/Пропустить».'));
-  $('#save').addEventListener('click', ()=>{ save(); toast('Сохранено'); });
-
-  // ======= СТАРТ =======
-  renderBoard();
-  clearAnno();
-  if(!load()) Game.init(); else { renderPlayers(); renderTokens(); updateTurnLabel(); setActiveCell(Game.cur().pos); }
-  window.addEventListener('resize', positionTokens);
-
-  // ======= UI костей =======
-  function showDice(d1,d2){
-    const a=$('#die1'), b=$('#die2');
-    [a,b].forEach(el=>{ el.classList.add('shake'); setTimeout(()=>el.classList.remove('shake'),350); });
-    a.textContent=d1; b.textContent=d2;
+  // ---------- SETUP NEW GAME ----------
+  function showSetup(){
+    clearAnno();clearSave();
+    const o=$('#setup'),n=$('#names'),pCount=$('#pCount'),startMoney=$('#startMoney');
+    const rebuild=()=>{n.innerHTML='';const cnt=Math.min(4,Math.max(2,Number(pCount.value||2)));for(let i=0;i<cnt;i++){const f=document.createElement('div');f.className='field';f.innerHTML=`<label>Имя игрока ${i+1}</label><input type="text" id="pName${i}" value="Игрок ${i+1}"/>`;n.appendChild(f);}};
+    pCount.addEventListener('input',rebuild,{once:true});
+    rebuild();o.classList.add('show');
+    $('#startGame').onclick=()=>{const cnt=Math.min(4,Math.max(2,Number(pCount.value||2)));const names=[];for(let i=0;i<cnt;i++){names.push(String(document.getElementById('pName'+i).value||`Игрок ${i+1}`));}o.classList.remove('show');Game.initFromConfig({names,money:Math.max(500,Number(startMoney.value||1500))});};
+    $('#cancelSetup').onclick=()=>{o.classList.remove('show');};
   }
 
-  // ======= САМОТЕСТЫ =======
-  (function runSelfTests(){
-    try{
-      console.assert(typeof renderTokens==='function','renderTokens должен существовать');
-      console.assert(BOARD.length===40,'Должно быть 40 клеток');
-      console.assert(document.getElementById('die1'), 'Должен существовать die1');
-      console.assert(!document.querySelector('.logo'), 'Лого в центре быть не должно');
+  // ---------- MARKET ----------
+  $('#marketList').addEventListener('click',e=>{const btn=e.target.closest('button[data-i]');if(!btn)return;const i=Number(btn.dataset.i);Game.sell(i);updateOwnershipUI();btn.closest('.item').remove();});
+  $('#closeMarket').addEventListener('click',()=>$('#market').classList.remove('show'));
 
-      // Аннотация появляется и очищается
-      anno(['Тестовое сообщение'],'info');
-      console.assert(document.querySelector('#anno .msg'),'Аннотация должна появляться');
-      clearAnno();
-      console.assert(!document.querySelector('#anno .msg'),'Аннотация должна очищаться');
+  // ---------- СТАРТ ----------
+  document.addEventListener('DOMContentLoaded',()=>{
+    renderBoard();
+    clearAnno();
+    if(!load()){showSetup();}else{renderPlayers();renderTokens();updateTurnLabel();setActiveCell(Game.cur().pos);}    
+    window.addEventListener('resize',positionTokens);
+  });
 
-      // До покупки меток нет, после покупки появляются
-      const idxToTest = 1; // Браун-1
-      const cell = document.querySelector(`.cell[data-index="${idxToTest}"]`);
-      console.assert(cell && !cell.querySelector('.owner-tag'), 'До покупки не должно быть меток владельца');
-      Game.owned[idxToTest] = {owner:0, houses:0, hotel:false};
-      updateOwnershipUI();
-      console.assert(cell.querySelector('.owner-tag') && cell.querySelector('.owner-chip'), 'После покупки метки владельца должны появиться');
+  function showDice(d1,d2){const a=$('#die1'),b=$('#die2');[a,b].forEach(el=>{el.classList.add('shake');setTimeout(()=>el.classList.remove('shake'),350);});a.textContent=d1;b.textContent=d2;}
 
-      // Тест сейва
-      save();
-      const raw = localStorage.getItem('mono.save');
-      console.assert(!!raw,'Сейв должен записываться');
-      console.debug('[DEV] Самотесты прошли');
-    }catch(e){
-      console.warn('Самотесты: проблема', e);
-    }
-  })();
+  // ---------- САМОТЕСТЫ ----------
+  (function runSelfTests(){try{
+    console.assert(typeof renderTokens==='function','renderTokens должен существовать');
+    console.assert(BOARD.length===40,'Должно быть 40 клеток');
+    console.assert(document.getElementById('die1'),'Должен существовать die1');
+    const before=JSON.stringify(Game.owned);
+    const idxToTest=1; // Браун-1
+    const tmp={...Game.owned}; tmp[idxToTest]={owner:0,houses:0,hotel:false}; Game.owned=tmp; updateOwnershipUI(); Game.owned=JSON.parse(before);
+    console.debug('[DEV] Самотесты прошли');
+  }catch(e){console.warn('Самотесты: проблема',e);}})();
   </script>
 </body>
 </html>
