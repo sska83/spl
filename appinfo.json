@@ -1,0 +1,12 @@
+{
+  "id": "com.monopoly.app",
+  "version": "1.0.0",
+  "vendor": "Monopoly Game",
+  "type": "web",
+  "main": "index.html",
+  "title": "Монополия",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "resolution": "1920x1080",
+  "disallowScrollingInMainWindow": true
+}
